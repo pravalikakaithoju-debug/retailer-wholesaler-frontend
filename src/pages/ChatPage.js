@@ -14,32 +14,29 @@ function ChatPage() {
     const [unreadCounts, setUnreadCounts] = useState({});
     const [rooms, setRooms] = useState([]);
     const socketRef = useRef(null);
-    
 
     useEffect(() => {
-         console.log(
-        "Current Room:",
-        currentRoomId
-        );
 
-        fetchCurrentUser();
-        fetchMessages(currentRoomId);
-        fetchWholesalers();
-        fetchRooms();
-        fetchRetailers();
+    fetchCurrentUser();
+    fetchMessages(currentRoomId);
+    fetchWholesalers();
+    fetchRooms();
+    fetchRetailers();
+
+    if (currentRoomId) {
         connectWebSocket(currentRoomId);
-        
+    }
 
+    return () => {
+        if (socketRef.current) {
+            socketRef.current.close();
+        }
+    };
 
-        return () => {
+}, [currentRoomId, connectWebSocket]);
+    
 
-            if (socketRef.current) {
-
-                socketRef.current.close();
-            }
-        };
-   
-    }, [currentRoomId]);
+    
 
     const fetchCurrentUser = async () => {
 
