@@ -39,7 +39,7 @@ function ChatPage() {
             }
         };
 
-    }, [currentRoomId]);
+    }, []);
 
     const fetchCurrentUser = async () => {
 
