@@ -14,7 +14,7 @@ function ChatPage() {
     const [unreadCounts, setUnreadCounts] = useState({});
     const [rooms, setRooms] = useState([]);
     const socketRef = useRef(null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
 
     useEffect(() => {
          console.log(
@@ -38,8 +38,8 @@ function ChatPage() {
                 socketRef.current.close();
             }
         };
-
-    }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentRoomId]);
 
     const fetchCurrentUser = async () => {
 
