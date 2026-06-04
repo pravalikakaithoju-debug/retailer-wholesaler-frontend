@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef,useCallback } from 'react';
 import API from '../services/api';
 
 function ChatPage() {
@@ -38,7 +38,7 @@ function ChatPage() {
                 socketRef.current.close();
             }
         };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+   
     }, [currentRoomId]);
 
     const fetchCurrentUser = async () => {
@@ -121,7 +121,7 @@ function ChatPage() {
     }
     };
 
-    const connectWebSocket = (roomId) => {
+    const connectWebSocket = useCallback((roomId) => {
 
         if (socketRef.current) {
 
@@ -193,7 +193,7 @@ if (selectedChat !== 'broadcast') {
                 'WebSocket Closed'
             );
         };
-    };
+    },[selectedChat] );
 
 const sendMessage = async () => {
 
