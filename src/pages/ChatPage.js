@@ -278,61 +278,7 @@ return;
         currentRoomId
     );
 };
-    const uploadImage = async () => {
-        console.log("upload BUTTON CLICKED");
 
-    if (!selectedImage) return;
-
-    const formData = new FormData();
-
-    formData.append(
-        'image',
-        selectedImage
-    );
-
-    formData.append(
-        'room_id',
-        currentRoomId
-    );
-
-    formData.append(
-        'sender_id',
-        currentUser.id
-    );
-
-    try {
-
-        await API.post(
-            'chat/upload-image/',
-            formData,
-            {
-                headers: {
-                    'Content-Type':
-                        'multipart/form-data'
-                }
-            }
-        );
-
-        setSelectedImage(null);
-
-        fetchMessages(
-            currentRoomId
-        );
-        console.log(
-        "UPLOAD SUCCESS"
-    );
-
-    } catch (error) {
-         console.log(
-        error.response?.data
-    );
-
-        console.log(
-            'Upload Error:',
-            error
-        );
-    }
-};
 
     const acceptRequest = async (
         messageId
