@@ -15,6 +15,80 @@ function ChatPage() {
     const [rooms, setRooms] = useState([]);
     const socketRef = useRef(null);
 
+    const connectWebSocket = useCallback((roomId) => {
+
+        if (socketRef.current) {
+
+            socketRef.current.close();
+        }
+
+        socketRef.current = new WebSocket(
+            `wss://retailer-wholesaler-chat.onrender.com/ws/chat/${roomId}/`
+        );
+
+        socketRef.current.onopen = () => {
+
+            console.log(
+                'WebSocket Connected'
+            );
+        };
+
+        socketRef.current.onmessage = (event) => {
+
+            const data = JSON.parse(
+                event.data
+            );
+
+            const newMsg = {
+
+    id: data.message_id,
+
+    sender: {
+        username: data.sender
+    },
+
+    content: data.message,
+
+    status: 'open',
+
+    created_at:
+        new Date().toISOString()
+};
+
+            setMessages((prev) => {
+
+    const exists = prev.some(
+        (msg) =>
+            msg.id === newMsg.id
+    );
+
+    if (exists) {
+        return prev;
+    }
+
+    return [...prev, newMsg];
+});
+
+if (selectedChat !== 'broadcast') {
+
+    setUnreadCounts((prev) => ({
+
+        ...prev,
+
+        [data.sender]:
+            (prev[data.sender] || 0) + 1
+    }));
+}
+        };
+
+        socketRef.current.onclose = () => {
+
+            console.log(
+                'WebSocket Closed'
+            );
+        };
+    },[selectedChat] );
+
     useEffect(() => {
 
     fetchCurrentUser();
@@ -118,79 +192,7 @@ function ChatPage() {
     }
     };
 
-    const connectWebSocket = useCallback((roomId) => {
-
-        if (socketRef.current) {
-
-            socketRef.current.close();
-        }
-
-        socketRef.current = new WebSocket(
-            `wss://retailer-wholesaler-chat.onrender.com/ws/chat/${roomId}/`
-        );
-
-        socketRef.current.onopen = () => {
-
-            console.log(
-                'WebSocket Connected'
-            );
-        };
-
-        socketRef.current.onmessage = (event) => {
-
-            const data = JSON.parse(
-                event.data
-            );
-
-            const newMsg = {
-
-    id: data.message_id,
-
-    sender: {
-        username: data.sender
-    },
-
-    content: data.message,
-
-    status: 'open',
-
-    created_at:
-        new Date().toISOString()
-};
-
-            setMessages((prev) => {
-
-    const exists = prev.some(
-        (msg) =>
-            msg.id === newMsg.id
-    );
-
-    if (exists) {
-        return prev;
-    }
-
-    return [...prev, newMsg];
-});
-
-if (selectedChat !== 'broadcast') {
-
-    setUnreadCounts((prev) => ({
-
-        ...prev,
-
-        [data.sender]:
-            (prev[data.sender] || 0) + 1
-    }));
-}
-        };
-
-        socketRef.current.onclose = () => {
-
-            console.log(
-                'WebSocket Closed'
-            );
-        };
-    },[selectedChat] );
+    
 
 const sendMessage = async () => {
 
