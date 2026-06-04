@@ -128,7 +128,7 @@ function ChatPage() {
         }
 
         socketRef.current = new WebSocket(
-            `ws://127.0.0.1:8000/ws/chat/${roomId}/`
+            `wss://retailer-wholesaler-chat.onrender.com/ws/chat/${roomId}/`
         );
 
         socketRef.current.onopen = () => {
@@ -570,7 +570,7 @@ setUnreadCounts((prev) => ({
            <img
         src={
             user.avatar
-                ? `http://127.0.0.1:8000${user.avatar}`
+                ? `https://retailer-wholesaler-chat.onrender.com${user.avatar}`
                 : 'https://via.placeholder.com/40'
         }
         alt="avatar"
@@ -758,7 +758,7 @@ setUnreadCounts((prev) => ({
 
         <img
             src={
-                `http://127.0.0.1:8000${msg.image}`
+                `https://retailer-wholesaler-chat.onrender.com${msg.image}`
             }
             alt="chat"
             style={{
