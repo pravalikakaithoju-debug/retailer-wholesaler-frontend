@@ -7,13 +7,14 @@ function ChatPage() {
     const [newMessage, setNewMessage] = useState('');
     const [selectedImage, setSelectedImage] = useState(null);
     const [wholesalers, setWholesalers] = useState([]);
-    const [retailers, setRetailers] = useState([]);
+    const [, setRetailers] = useState([]);
     const [selectedChat, setSelectedChat] = useState('broadcast');
     const [currentRoomId, setCurrentRoomId] = useState(2);
     const [currentUser, setCurrentUser] = useState(null);
     const [unreadCounts, setUnreadCounts] = useState({});
     const [rooms, setRooms] = useState([]);
     const socketRef = useRef(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
 
     useEffect(() => {
          console.log(
