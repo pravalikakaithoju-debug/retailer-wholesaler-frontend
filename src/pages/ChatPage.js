@@ -36,7 +36,7 @@ function ChatPage() {
         }
 
         socketRef.current = new WebSocket(
-            `ws://localhost:8000/ws/chat/${roomId}/`
+            `wss://retailer-wholesaler-chat.onrender.com/ws/chat/${roomId}/`
         );
 
         socketRef.current.onopen = () => {
@@ -635,7 +635,7 @@ const fetchAcceptedProducts = async () => {
         <img
             src={
                 currentUser?.avatar
-                    ? `http://localhost:8000${currentUser.avatar}`
+                    ? `https://retailer-wholesaler-chat.onrender.com${currentUser.avatar}`
                     : 'https://via.placeholder.com/80'
             }
             alt="profile"
@@ -846,7 +846,7 @@ setUnreadCounts((prev) => ({
            <img
         src={
             user.avatar
-                ? `http://localhost:8000${user.avatar}`
+                ? `https://retailer-wholesaler-chat.onrender.com${user.avatar}`
                 : 'https://via.placeholder.com/40'
         }
         alt="avatar"
@@ -1001,7 +1001,7 @@ height:
     <img
         src={
             retailer.avatar
-                ? `http://localhost:8000${retailer.avatar}`
+                ? `https://retailer-wholesaler-chat.onrender.com${retailer.avatar}`
                 : 'https://via.placeholder.com/40'
         }
         alt="avatar"
@@ -1174,7 +1174,7 @@ height:
 
         <img
             src={
-                `http://localhost:8000${msg.image}`
+                `https://retailer-wholesaler-chat.onrender.com${msg.image}`
             }
             alt="chat"
             style={{
