@@ -104,17 +104,18 @@ if (selectedChat !== 'broadcast') {
 
     useEffect(() => {
 
+    fetchCurrentUser();
     fetchMessages(currentRoomId);
+    fetchWholesalers();
+    fetchRooms();
+    fetchRetailers();
 
     if (currentRoomId) {
-
         connectWebSocket(currentRoomId);
     }
 
     return () => {
-
         if (socketRef.current) {
-
             socketRef.current.close();
         }
     };
@@ -307,7 +308,9 @@ return;
     }
 
     // Refresh messages
-    
+    fetchMessages(
+        currentRoomId
+    );
 };
     const deleteChat = async () => {
 
