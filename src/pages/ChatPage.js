@@ -1,6 +1,8 @@
 import { useEffect, useState, useRef,useCallback } from 'react';
 import API from '../services/api';
 
+import './responsive.css';
+
 function ChatPage() {
 
     const [messages, setMessages] = useState([]);
@@ -13,9 +15,20 @@ function ChatPage() {
     const [currentUser, setCurrentUser] = useState(null);
     const [unreadCounts, setUnreadCounts] = useState({});
     const [rooms, setRooms] = useState([]);
+    const [
+    acceptedProducts,
+    setAcceptedProducts
+] = useState([]);
+    
+    const [searchUser, setSearchUser] =
+    useState('');
+   
+    
+    
     const socketRef = useRef(null);
 
     const connectWebSocket = useCallback((roomId) => {
+        
 
         if (socketRef.current) {
 
@@ -23,7 +36,7 @@ function ChatPage() {
         }
 
         socketRef.current = new WebSocket(
-            `wss://retailer-wholesaler-chat.onrender.com/ws/chat/${roomId}/`
+            `ws://localhost:8000/ws/chat/${roomId}/`
         );
 
         socketRef.current.onopen = () => {
@@ -108,6 +121,18 @@ if (selectedChat !== 'broadcast') {
     };
 
 }, [currentRoomId, connectWebSocket]);
+useEffect(() => {
+
+    if (
+        currentRoomId
+    ) {
+
+        fetchAcceptedProducts();
+    }
+
+}, [
+    currentRoomId
+]);
     
 
     
@@ -120,12 +145,14 @@ if (selectedChat !== 'broadcast') {
                 'chat/current-user/'
             );
 
-            setCurrentUser(response.data);
+
+            
 
             console.log(
                 'Current User:',
                 response.data
             );
+            setCurrentUser(response.data);
 
         } catch (error) {
 
@@ -138,22 +165,18 @@ if (selectedChat !== 'broadcast') {
 
     const fetchMessages = async (roomId) => {
 
-        try {
+    const response = await API.get(
+        `chat/messages/${roomId}/`
+    );
 
-            const response = await API.get(
-                `chat/messages/${roomId}/`
-            );
+    console.log(
+        "MESSAGES FROM API",
+        response.data
+    );
 
-            setMessages(response.data);
+    setMessages(response.data);
 
-        } catch (error) {
-
-            console.log(
-                'Messages Error:',
-                error
-            );
-        }
-    };
+};
 
     const fetchWholesalers = async () => {
 
@@ -181,6 +204,19 @@ if (selectedChat !== 'broadcast') {
             'chat/retailers/'
         );
 
+        console.log(
+    "Retailers Count:",
+    response.data.length
+);
+
+console.log(
+    JSON.stringify(
+        response.data,
+        null,
+        2
+    )
+);
+
         setRetailers(response.data);
 
     } catch (error) {
@@ -190,11 +226,9 @@ if (selectedChat !== 'broadcast') {
             error
         );
     }
-    };
+};
 
-    
-
-const sendMessage = async () => {
+    const sendMessage = async () => {
 
     if (!currentUser) return;
 
@@ -278,6 +312,31 @@ return;
         currentRoomId
     );
 };
+    const deleteChat = async () => {
+
+    if (
+        !window.confirm(
+            "Delete all messages in this chat?"
+        )
+    ) {
+        return;
+    }
+
+    try {
+
+        await API.delete(
+            `chat/delete-chat/${currentRoomId}/`
+        );
+
+        fetchMessages(
+            currentRoomId
+        );
+
+    } catch (error) {
+
+        console.log(error);
+    }
+};
 
 
     const acceptRequest = async (
@@ -306,6 +365,73 @@ return;
             );
         }
     };
+
+    const rejectRequest = async (
+    messageId
+) => {
+
+    try {
+
+        await API.post(
+            `chat/reject-message/${messageId}/`,
+            {
+                wholesaler_id:
+                    currentUser?.id
+            }
+        );
+
+        fetchMessages(
+            currentRoomId
+        );
+
+    } catch (error) {
+
+        console.log(
+            'Reject Error:',
+            error
+        );
+    }
+};
+    const uploadAvatar = async (file) => {
+
+    if (!file) return;
+
+    const formData =
+        new FormData();
+
+    formData.append(
+        'avatar',
+        file
+    );
+
+    try {
+
+        await API.post(
+            'accounts/upload-avatar/',
+            formData,
+            {
+                headers: {
+                    'Content-Type':
+                        'multipart/form-data'
+                }
+            }
+        );
+
+        alert(
+            'Avatar Updated Successfully'
+        );
+
+        fetchCurrentUser();
+
+    } catch (error) {
+
+        console.log(error);
+
+        alert(
+            'Upload Failed'
+        );
+    }
+};
 
     const openDirectChat = async (
         wholesaler
@@ -364,6 +490,13 @@ console.log(
     'Rooms Loaded:',
     response.data
 );
+console.log(
+    JSON.stringify(
+        response.data,
+        null,
+        2
+    )
+);
 
     } catch (error) {
 
@@ -400,47 +533,187 @@ localStorage.removeItem(
 
     window.location.reload();
 };
+const fetchAcceptedProducts = async () => {
+
+    try {
+
+        const otherUser =
+            rooms
+                .find(
+                    (r) =>
+                        r.id ===
+                        currentRoomId
+                )
+                ?.participants.find(
+                    (p) =>
+                        p.id !==
+                        currentUser?.id
+                );
+
+        if (!otherUser) return;
+
+        let retailerId;
+        let wholesalerId;
+
+        if (
+            currentUser.role ===
+            'retailer'
+        ) {
+
+            retailerId =
+                currentUser.id;
+
+            wholesalerId =
+                otherUser.id;
+
+        } else {
+
+            retailerId =
+                otherUser.id;
+
+            wholesalerId =
+                currentUser.id;
+        }
+
+        const res =
+            await API.get(
+
+                `chat/accepted-products/?retailer_id=${retailerId}&wholesaler_id=${wholesalerId}`
+
+            );
+
+        setAcceptedProducts(
+            res.data
+        );
+
+    } catch (err) {
+
+        console.log(
+            err
+        );
+    }
+};
+    
     return (
 
-        <div
-            style={{
-                display: 'flex',
-                height: '100vh'
-            }}
-        >
+        <div className="chat-container">
 
-            <div
-                style={{
-                    width: '250px',
-                    borderRight:
-                        '1px solid gray',
-                    padding: '20px'
-                }}
-            >
+            <div className="sidebar">
+                
 
                 <h3>Chats</h3>
                 <p>
-    Logged in as:
-    {' '}
+    
     <b>
+        <div
+    style={{
+        marginBottom: '15px'
+    }}
+>
+
+
+    <strong>
+        <div
+    style={{
+        textAlign: 'center',
+        marginBottom: '20px'
+    }}
+>
+
+    
+
+    <strong>
+        <div
+    style={{
+        textAlign: 'center',
+        marginBottom: '20px'
+    }}
+>
+
+    <label htmlFor="avatar-upload">
+
+        <img
+            src={
+                currentUser?.avatar
+                    ? `http://localhost:8000${currentUser.avatar}`
+                    : 'https://via.placeholder.com/80'
+            }
+            alt="profile"
+            style={{
+                width:
+    window.innerWidth < 768
+        ? '60px'
+        : '80px',
+
+height:
+    window.innerWidth < 768
+        ? '60px'
+        : '80px',
+                borderRadius: '50%',
+                objectFit: 'cover',
+                cursor: 'pointer',
+                border: '2px solid #ccc'
+            }}
+        />
+
+    </label>
+
+    <input
+        id="avatar-upload"
+        type="file"
+        accept="image/*"
+        style={{
+            display: 'none'
+        }}
+        onChange={(e) =>
+            uploadAvatar(
+                e.target.files[0]
+            )
+        }
+    />
+
+    <br />
+
+    <strong>
+        Logged in as:
+        {' '}
         {currentUser?.username}
+    </strong>
+
+    <br />
+
+    <small>
+        ({currentUser?.role})
+    </small>
+
+</div>
+    </strong>
+
+ 
+
+</div>
+        
+    </strong>
+
+</div>
     </b>
-    {' '}
-    (
-    {currentUser?.role}
-    )
+    
 </p>
+
 
 <button
     onClick={logout}
     style={{
-        padding: '8px',
-        marginBottom: '15px',
-        cursor: 'pointer'
-    }}
+    padding: '10px',
+    width: '100%',
+    marginBottom: '15px',
+    cursor: 'pointer'
+}}
 >
     Logout
 </button>
+
+
 
                 <div
                     onClick={() => {
@@ -483,11 +756,68 @@ setUnreadCounts((prev) => ({
                       }
 
                 </div>
+                <div
+    style={{
+        display: 'flex',
+        alignItems: 'center',
+        margin: '10px'
+    }}
+>
 
+    <input
+    type="text"
+    style={{
+        flex: 1,
+        width: '100%',
+        padding: '10px'
+    }}
+    placeholder={
+        currentUser?.role === 'retailer'
+            ? 'Search wholesalers...'
+            : 'Search retailers...'
+    }
+    value={searchUser}
+    onChange={(e) => {
+
+        console.log(
+            "Typing:",
+            e.target.value
+        );
+
+        setSearchUser(
+            e.target.value
+        );
+    }}
+/>
+
+    <button
+        onClick={() =>
+            setSearchUser('')
+        }
+        style={{
+            marginLeft: '5px',
+            cursor: 'pointer'
+        }}
+    >
+        ✖
+    </button>
+
+</div>
                {
     currentUser?.role === 'retailer' &&
 
-    wholesalers.map(
+    wholesalers
+
+    .filter((user) =>
+
+        user.username
+            .toLowerCase()
+            .includes(
+                searchUser.toLowerCase()
+            )
+    )
+
+    .map(
         (user) => (
 
             <div
@@ -516,17 +846,25 @@ setUnreadCounts((prev) => ({
            <img
         src={
             user.avatar
-                ? `https://retailer-wholesaler-chat.onrender.com${user.avatar}`
+                ? `http://localhost:8000${user.avatar}`
                 : 'https://via.placeholder.com/40'
         }
         alt="avatar"
         style={{
-            width: '40px',
-            height: '40px',
+            width:
+    window.innerWidth < 768
+        ? '60px'
+        : '80px',
+
+height:
+    window.innerWidth < 768
+        ? '60px'
+        : '80px',
             borderRadius: '50%',
             objectFit: 'cover'
         }}
     />
+    
 
     <div>
 
@@ -567,19 +905,51 @@ setUnreadCounts((prev) => ({
     currentUser?.role === 'wholesaler' &&
 
     rooms
-        .filter(
-            (room) =>
-                room.room_type === 'direct'
-        )
-        .map((room) => {
+    .filter(
+        (room) =>
+            room.room_type === 'direct'
+    )
 
-            const retailer =
-                room.participants.find(
-                    (p) =>
-                        p.role === 'retailer'
-                );
+    .filter((room) => {
 
-            if (!retailer) return null;
+    const otherUser =
+        room.participants.find(
+            (p) =>
+                p.id !== currentUser?.id
+        );
+
+    console.log(
+        "Current User:",
+        currentUser?.username
+    );
+
+    console.log(
+        "Search Text:",
+        searchUser
+    );
+
+    console.log(
+        "Other User:",
+        otherUser?.username
+    );
+
+    if (!otherUser) return false;
+
+    return otherUser.username
+        .toLowerCase()
+        .includes(
+            searchUser.toLowerCase()
+        );
+})
+    .map((room) => {
+
+    const retailer =
+        room.participants.find(
+            (p) =>
+                p.id !== currentUser?.id
+        );
+
+    if (!retailer) return null;
 
             return (
 
@@ -620,7 +990,53 @@ setUnreadCounts((prev) => ({
                     }}
                 >
 
-                    {retailer.is_online ? '🟢' : '🔴'} {retailer.username}
+                    {retailer.is_online ? '🟢' : '🔴'} <div
+    style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px'
+    }}
+>
+
+    <img
+        src={
+            retailer.avatar
+                ? `http://localhost:8000${retailer.avatar}`
+                : 'https://via.placeholder.com/40'
+        }
+        alt="avatar"
+        style={{
+            width: '40px',
+            height: '40px',
+            borderRadius: '50%',
+            objectFit: 'cover'
+        }}
+    />
+
+    <div>
+
+        {retailer.username}
+
+        <br />
+
+        <small
+            style={{
+                color:
+                    retailer.is_online
+                        ? 'green'
+                        : 'gray'
+            }}
+        >
+            {
+                retailer.is_online
+                    ? 'Online'
+                    : 'Offline'
+            }
+        </small>
+
+    </div>
+
+</div>
 
 {
     unreadCounts[
@@ -638,12 +1054,7 @@ setUnreadCounts((prev) => ({
 }
             </div>
 
-            <div
-                style={{
-                    flex: 1,
-                    padding: '20px'
-                }}
-            >
+            <div className="chat-area">
 
                 <h2>
 
@@ -653,8 +1064,64 @@ setUnreadCounts((prev) => ({
                             ? 'Broadcast Chat Room'
                             : `Chat with ${selectedChat}`
                     }
+                 
 
                 </h2>
+                <button
+    onClick={deleteChat}
+    style={{
+        marginBottom: '10px',
+        backgroundColor: 'blue',
+        color: 'white',
+        padding: '10px',
+        border: 'none',
+        borderRadius: '5px',
+        cursor: 'pointer'
+    }}
+>
+    Delete Chat
+</button>
+
+
+   
+
+   {
+    selectedChat !== 'broadcast' &&
+    acceptedProducts.length > 0 && (
+
+        <div
+            style={{
+                marginBottom: '15px',
+                padding: '10px',
+                border: '1px solid #ddd',
+                borderRadius: '8px'
+            }}
+        >
+
+            <b>
+                Accepted Products
+            </b>
+
+            <ul>
+
+                {
+                    acceptedProducts.map(
+                        (product, index) => (
+
+                            <li key={index}>
+                                ✓ {product.product_name}
+                            </li>
+
+                        )
+                    )
+                }
+
+            </ul>
+
+        </div>
+
+    )
+}
 
                 {
                     messages.map(
@@ -676,7 +1143,10 @@ setUnreadCounts((prev) => ({
 >
 <div
     style={{
-        maxWidth: '60%',
+        maxWidth:
+    window.innerWidth < 768
+        ? '90%'
+        : '60%',
 
         border: '1px solid gray',
 
@@ -704,15 +1174,18 @@ setUnreadCounts((prev) => ({
 
         <img
             src={
-                `https://retailer-wholesaler-chat.onrender.com${msg.image}`
+                `http://localhost:8000${msg.image}`
             }
             alt="chat"
             style={{
-                maxWidth: '250px',
-                maxHeight: '250px',
-                borderRadius: '10px',
-                marginTop: '10px'
-            }}
+    width: '100%',
+    maxWidth:
+        window.innerWidth < 768
+            ? '180px'
+            : '250px',
+    borderRadius: '10px',
+    marginTop: '10px'
+}}
         />
 
     )
@@ -744,23 +1217,58 @@ setUnreadCounts((prev) => ({
     }
 
 </small>
-   {
-    selectedChat === 'broadcast' &&
+{
     currentUser?.role === 'wholesaler' &&
-    msg.status === 'open' &&
+    msg.status === 'pending' &&
     msg.sender.username !== currentUser?.username && (
 
-        <div>
-            <button
-                onClick={() =>
-                    acceptRequest(msg.id)
-                }
-            >
-                Accept
-            </button>
+        <div
+            style={{
+                marginTop: '10px'
+            }}
+        >
+
+            {
+                selectedChat === 'broadcast' ? (
+
+                    <button
+                        onClick={() =>
+                            acceptRequest(msg.id)
+                        }
+                    >
+                        Accept
+                    </button>
+
+                ) : (
+
+                    <>
+                        <button
+                            onClick={() =>
+                                acceptRequest(msg.id)
+                            }
+                        >
+                            Accept
+                        </button>
+
+                        <button
+                            onClick={() =>
+                                rejectRequest(msg.id)
+                            }
+                            style={{
+                                marginLeft: '10px'
+                            }}
+                        >
+                            Reject
+                        </button>
+                    </>
+
+                )
+            }
+
         </div>
+
     )
-}  
+} 
 </div>
 </div>
                         )
@@ -786,7 +1294,7 @@ setUnreadCounts((prev) => ({
             e.target.files[0]
         )
     }
-/>
+/>                  
 
                     <input
                         type="text"
@@ -800,10 +1308,11 @@ setUnreadCounts((prev) => ({
                             )
                         }
                         style={{
-                            flex: 1,
-                            padding:
-                                '10px'
-                        }}
+    flex: 1,
+    width: '100%',
+    padding: '10px',
+    boxSizing: 'border-box'
+}}
                     />
 
                     <button

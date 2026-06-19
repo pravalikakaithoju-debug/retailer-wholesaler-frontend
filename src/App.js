@@ -2,6 +2,7 @@ import { useState } from 'react';
 
 import ChatPage from './pages/ChatPage';
 import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
 
 function App() {
 
@@ -12,23 +13,73 @@ function App() {
             )
         );
 
+    const [showRegister,
+        setShowRegister] =
+        useState(false);
+
     return (
 
         <div>
 
             {
-                loggedIn
 
-                    ? <ChatPage />
+                loggedIn ? (
 
-                    : <LoginPage
-                        onLogin={() =>
-                            setLoggedIn(true)
+                    <ChatPage />
+
+                ) : showRegister ? (
+
+                    <RegisterPage
+
+                        onBackToLogin={() =>
+                            setShowRegister(false)
                         }
+
                     />
+
+                ) : (
+
+                    <div>
+
+                        <LoginPage
+
+                            onLogin={() =>
+                                setLoggedIn(true)
+                            }
+
+                        />
+
+                        <div
+                            style={{
+                                textAlign: 'center',
+                                marginTop: '20px'
+                            }}
+                        >
+
+                            <button
+
+                                onClick={() =>
+                                    setShowRegister(
+                                        true
+                                    )
+                                }
+
+                            >
+
+                                Create New Account
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                )
+
             }
 
         </div>
+
     );
 }
 
