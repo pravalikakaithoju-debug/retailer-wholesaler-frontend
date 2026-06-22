@@ -276,7 +276,7 @@ if (showForgotUsername) {
 
     <div className="login-card">
 
-            <h3>Login</h3>
+            
 
             <input
                 type="text"
