@@ -1,14 +1,16 @@
 import axios from 'axios';
 
 const API = axios.create({
-    baseURL: 'https://retailer-wholesaler-chat.onrender.com/api/'
+    baseURL: 'https://retailer-wholesaler-chat.onrender.coms/api/'
 });
 
 API.interceptors.request.use(
     (config) => {
 
         const token =
-            localStorage.getItem('access');
+    sessionStorage.getItem(
+        'access'
+    );
 
         if (token) {
 

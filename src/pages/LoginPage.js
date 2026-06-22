@@ -1,7 +1,11 @@
 import { useState } from 'react';
 import API from '../services/api';
+import './LoginPage.css';
 
-function LoginPage({ onLogin }) {
+function LoginPage({
+    onLogin,
+    onShowRegister
+}) {
 
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
@@ -41,19 +45,21 @@ const [
                 }
             );
 
-            localStorage.setItem(
-                'access',
-                response.data.access
-            );
-            localStorage.setItem(
+           sessionStorage.setItem(
+    'access',
+    response.data.access
+);
+
+sessionStorage.setItem(
+    'refresh',
+    response.data.refresh
+);
+            sessionStorage.setItem(
     'rememberedUsername',
     username
 );
 
-            localStorage.setItem(
-                'refresh',
-                response.data.refresh
-            );
+            
 
             onLogin();
 
@@ -256,14 +262,27 @@ if (showForgotUsername) {
 }
     return (
 
-        <div
-            style={{
-                width: '300px',
-                margin: '100px auto'
-            }}
-        >
+<div className="login-container">
 
-            <h2>Login</h2>
+    <div className="branding">
+
+    <h1>
+        TRADE CONNECT
+    </h1>
+
+    <p>
+        Connecting Retailers & Wholesalers
+    </p>
+
+    <h3>
+        (Smart Business Procurement Platform)
+    </h3>
+
+</div>
+
+    <div className="login-card">
+
+            <h3>Login</h3>
 
             <input
                 type="text"
@@ -314,10 +333,21 @@ if (showForgotUsername) {
 >
     Forgot Username
 </button>
+<br /><br />
+
+<button
+    className="register-btn"
+    onClick={onShowRegister}
+>
+    Create New Account
+</button>
           
 
         </div>
-    );
+
+</div>
+
+);
     
 }
 

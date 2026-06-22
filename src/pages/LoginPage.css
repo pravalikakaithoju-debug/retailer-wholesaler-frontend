@@ -1,0 +1,168 @@
+.login-container{
+
+    height:100vh;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    background:
+    linear-gradient(
+        rgba(0,0,0,0.5),
+        rgba(0,0,0,0.5)
+    ),
+
+    url("https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d");
+
+    background-size:cover;
+
+    background-position:center;
+
+    position:relative;
+}
+
+.branding{
+
+    position:absolute;
+
+    top:20px;
+
+    width:100%;
+
+    text-align:center;
+
+    color:white;
+
+    z-index:100;
+}
+
+.branding h1{
+
+    font-size:60px;
+
+    font-weight:bold;
+
+    letter-spacing:4px;
+
+    margin-bottom:5px;
+
+    text-shadow:
+        2px 2px 10px rgba(
+            0,
+            0,
+            0,
+            0.8
+        );
+}
+
+.branding p{
+
+    font-size:20px;
+
+    opacity:0.9;
+}
+
+.login-card{
+    margin-top:100px;
+    width:380px;
+
+    padding:35px;
+
+    border-radius:20px;
+
+    background:
+    rgba(255,255,255,0.15);
+
+    backdrop-filter:
+    blur(15px);
+
+    box-shadow:
+    0 8px 32px rgba(
+        0,
+        0,
+        0,
+        0.3
+    );
+
+    text-align:center;
+
+    color:white;
+}
+
+.login-card input{
+
+    width:100%;
+
+    padding:12px;
+
+    margin-top:10px;
+
+    border:none;
+
+    border-radius:8px;
+
+    outline:none;
+}
+
+.login-card button{
+
+    width:100%;
+
+    padding:12px;
+
+    margin-top:15px;
+
+    border:none;
+
+    border-radius:8px;
+
+    background:#0d6efd;
+
+    color:white;
+
+    font-size:16px;
+
+    font-weight:bold;
+
+    cursor:pointer;
+}
+
+.login-card button:hover{
+
+    background:#084298;
+}
+.branding p{
+
+    font-size:22px;
+
+    font-weight:500;
+
+    margin-bottom:5px;
+
+    text-shadow:
+        2px 2px 10px rgba(
+            0,
+            0,
+            0,
+            0.8
+        );
+}
+
+.branding h3{
+
+    font-size:14px;
+
+    font-weight:300;
+
+    color:#f8f9fa;
+
+    text-shadow:
+        2px 2px 10px rgba(
+            0,
+            0,
+            0,
+            0.8
+        );
+}

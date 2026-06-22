@@ -8,9 +8,8 @@ function App() {
 
     const [loggedIn, setLoggedIn] =
         useState(
-            !!localStorage.getItem(
-                'access'
-            )
+            !!sessionStorage.getItem('access')
+            
         );
 
     const [showRegister,
@@ -43,34 +42,17 @@ function App() {
 
                         <LoginPage
 
-                            onLogin={() =>
-                                setLoggedIn(true)
-                            }
+    onLogin={() =>
+        setLoggedIn(true)
+    }
 
-                        />
+    onShowRegister={() =>
+        setShowRegister(true)
+    }
 
-                        <div
-                            style={{
-                                textAlign: 'center',
-                                marginTop: '20px'
-                            }}
-                        >
+/>
 
-                            <button
-
-                                onClick={() =>
-                                    setShowRegister(
-                                        true
-                                    )
-                                }
-
-                            >
-
-                                Create New Account
-
-                            </button>
-
-                        </div>
+                        
 
                     </div>
 

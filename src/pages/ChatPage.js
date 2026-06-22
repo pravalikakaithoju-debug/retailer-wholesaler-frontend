@@ -11,7 +11,7 @@ function ChatPage() {
     const [wholesalers, setWholesalers] = useState([]);
     const [, setRetailers] = useState([]);
     const [selectedChat, setSelectedChat] = useState('broadcast');
-    const [currentRoomId, setCurrentRoomId] = useState(2);
+    const [currentRoomId, setCurrentRoomId] = useState(null);
     const [currentUser, setCurrentUser] = useState(null);
     const [unreadCounts, setUnreadCounts] = useState({});
     const [rooms, setRooms] = useState([]);
@@ -46,84 +46,131 @@ function ChatPage() {
             );
         };
 
-        socketRef.current.onmessage = (event) => {
+ socketRef.current.onmessage = (event) => {
 
-            const data = JSON.parse(
-                event.data
-            );
+    const data = JSON.parse(event.data);
 
-            const newMsg = {
+    console.log(
+        "WS DATA:",
+        data
+    );
+    if (
+    data.type ===
+    "product_accepted"
+) {
 
-    id: data.message_id,
-
-    sender: {
-        username: data.sender
-    },
-
-    content: data.message,
-
-    status: 'open',
-
-    created_at:
-        new Date().toISOString()
-};
-
-            setMessages((prev) => {
-
-    const exists = prev.some(
-        (msg) =>
-            msg.id === newMsg.id
+    console.log(
+        "Product Accepted"
     );
 
-    if (exists) {
-        return prev;
+    fetchMessages(
+        currentRoomId
+    );
+
+    return;
+}
+if (
+    data.type ===
+    'product_rejected'
+){
+
+    setMessages(prev =>
+
+        prev.map(msg =>
+
+            msg.id ===
+            data.message_id
+
+                ? {
+
+                    ...msg,
+
+                    status:
+                    'rejected',
+
+                    accepted_by: {
+
+                        username:
+                        data.rejected_by
+
+                    }
+
+                }
+
+                : msg
+        )
+    );
+
+    return;
+}
+
+    if (!currentUser) return;
+
+    if (
+        selectedChat === 'broadcast' &&
+        currentUser.role === 'retailer' &&
+        data.sender !== currentUser.username
+    ) {
+
+        console.log(
+            "Ignoring other retailer broadcast message"
+        );
+
+        return;
     }
 
-    return [...prev, newMsg];
-});
-
-if (selectedChat !== 'broadcast') {
-
-    setUnreadCounts((prev) => ({
-
-        ...prev,
-
-        [data.sender]:
-            (prev[data.sender] || 0) + 1
-    }));
-}
-        };
-
+    fetchMessages(currentRoomId);
+};
         socketRef.current.onclose = () => {
 
             console.log(
                 'WebSocket Closed'
             );
         };
-    },[selectedChat] );
+    },[
+    selectedChat,
+    currentUser,
+    currentRoomId
+] );
 
-    useEffect(() => {
+useEffect(() => {
 
     fetchCurrentUser();
-    fetchMessages(currentRoomId);
     fetchWholesalers();
     fetchRooms();
     fetchRetailers();
 
-    if (currentRoomId) {
-        connectWebSocket(currentRoomId);
-    }
+}, []);
+
+
+useEffect(() => {
+
+    if (!currentUser) return;
+
+    if (!currentRoomId) return;
+
+    fetchMessages(currentRoomId);
+
+    connectWebSocket(currentRoomId);
 
     return () => {
+
         if (socketRef.current) {
             socketRef.current.close();
         }
     };
 
-}, [currentRoomId, connectWebSocket]);
+}, [
+    currentRoomId,
+    currentUser,
+    connectWebSocket
+]);
+
+
 useEffect(() => {
 
     if (
+        currentUser &&
         currentRoomId
     ) {
 
@@ -131,12 +178,9 @@ useEffect(() => {
     }
 
 }, [
+    currentUser,
     currentRoomId
 ]);
-    
-
-    
-
     const fetchCurrentUser = async () => {
 
         try {
@@ -154,6 +198,7 @@ useEffect(() => {
             );
             setCurrentUser(response.data);
 
+
         } catch (error) {
 
             console.log(
@@ -163,21 +208,72 @@ useEffect(() => {
         }
     };
 
-    const fetchMessages = async (roomId) => {
+   const fetchMessages = async (roomId) => {
+    console.trace(
+    "fetchMessages called"
+);
+     if (!roomId) {
+
+        console.log(
+            "Room ID is null"
+        );
+
+        return;
+    }
+
+    if (!currentUser) {
+
+        console.log(
+            "Current User not loaded yet"
+        );
+        console.log(
+    "FETCHING ROOM:",
+    roomId
+);
+
+console.log(
+    "CURRENT USER:",
+    currentUser?.username
+);
+
+        return;
+    }
+
 
     const response = await API.get(
         `chat/messages/${roomId}/`
     );
 
     console.log(
-        "MESSAGES FROM API",
-        response.data
+        "Current User:",
+        currentUser.username
     );
 
+    console.log(
+        "Messages Received:",
+        response.data
+    );
+    console.log(
+    "FETCHED COUNT:",
+    response.data.length
+);
+
+response.data.forEach(msg => {
+    console.log(
+        msg.sender.username,
+        "->",
+        msg.content
+    );
+});
+    console.log(
+    response.data.map(msg => ({
+        content: msg.content,
+        sender: msg.sender.username
+    }))
+);
+
     setMessages(response.data);
-
 };
-
     const fetchWholesalers = async () => {
 
         try {
@@ -271,7 +367,7 @@ console.log(
             setSelectedImage(null);
 setNewMessage('');
 
-fetchMessages(currentRoomId);
+//fetchMessages(currentRoomId);
 
 return;
 
@@ -308,9 +404,7 @@ return;
     }
 
     // Refresh messages
-    fetchMessages(
-        currentRoomId
-    );
+    //fetchMessages(currentRoomId);
 };
     const deleteChat = async () => {
 
@@ -483,20 +577,44 @@ return;
             );
 
         setRooms(
-    response.data
-);
-
-console.log(
-    'Rooms Loaded:',
-    response.data
-);
-console.log(
-    JSON.stringify(
-        response.data,
-        null,
-        2
+            response.data
+        );
+        console.log(
+    "Broadcast Room:",
+    response.data.find(
+        room =>
+            room.room_type ===
+            'broadcast'
     )
 );
+
+        // Automatically find broadcast room
+        const broadcastRoom =
+            response.data.find(
+                room =>
+                    room.room_type ===
+                    'broadcast'
+            );
+
+        if (broadcastRoom) {
+
+    setCurrentRoomId(
+        broadcastRoom.id
+    );
+}
+
+        console.log(
+            'Rooms Loaded:',
+            response.data
+        );
+
+        console.log(
+            JSON.stringify(
+                response.data,
+                null,
+                2
+            )
+        );
 
     } catch (error) {
 
@@ -506,7 +624,8 @@ console.log(
         );
     }
 };
-    console.log("Rooms:", rooms);
+
+console.log("Rooms:", rooms);
 const logout = async () => {
 
     try {
@@ -523,18 +642,24 @@ const logout = async () => {
         );
     }
 
-   localStorage.removeItem(
+   sessionStorage.removeItem(
     'access'
 );
 
-localStorage.removeItem(
+sessionStorage.removeItem(
     'refresh'
+);
+
+sessionStorage.removeItem(
+    'rememberedUsername'
 );
 
     window.location.reload();
 };
 const fetchAcceptedProducts = async () => {
-
+    console.log(
+    "Fetching Accepted Products"
+);
     try {
 
         const otherUser =
@@ -581,6 +706,11 @@ const fetchAcceptedProducts = async () => {
                 `chat/accepted-products/?retailer_id=${retailerId}&wholesaler_id=${wholesalerId}`
 
             );
+         
+console.log(
+    "Accepted Products Response:",
+    res.data
+);
 
         setAcceptedProducts(
             res.data
@@ -591,6 +721,31 @@ const fetchAcceptedProducts = async () => {
         console.log(
             err
         );
+    }
+};
+if (!currentUser) {
+
+    return (
+        <div>
+            Loading...
+        </div>
+    );
+}
+const deleteAcceptedProduct = async (
+    productId
+) => {
+
+    try {
+
+        await API.delete(
+            `chat/delete-accepted-product/${productId}/`
+        );
+
+        fetchAcceptedProducts();
+
+    } catch (error) {
+
+        console.log(error);
     }
 };
     
@@ -1083,10 +1238,10 @@ height:
 </button>
 
 
-   
 
    {
-    selectedChat !== 'broadcast' &&
+    currentUser?.role === 'wholesaler' &&
+    
     acceptedProducts.length > 0 && (
 
         <div
@@ -1094,7 +1249,8 @@ height:
                 marginBottom: '15px',
                 padding: '10px',
                 border: '1px solid #ddd',
-                borderRadius: '8px'
+                borderRadius: '8px',
+                backgroundColor: '#f9f9f9'
             }}
         >
 
@@ -1105,19 +1261,41 @@ height:
             <ul>
 
                 {
-                    acceptedProducts.map(
-                        (product, index) => (
+    acceptedProducts.map(
+        (product) => (
 
-                            <li key={index}>
-                                ✓ {product.product_name}
-                            </li>
+            <li key={product.id}>
 
+                ✓ {product.product_name}
+
+                <button
+                    onClick={() =>
+                        deleteAcceptedProduct(
+                            product.id
                         )
-                    )
-                }
+                    }
+                    style={{
+                        marginLeft: '10px',
+                        backgroundColor: '#dc3545',
+                        color: 'white',
+                        border: 'none',
+                        padding: '3px 8px',
+                        borderRadius: '4px',
+                        cursor: 'pointer'
+                    }}
+                >
+                    Delete
+                </button>
+
+            </li>
+
+        )
+    )
+}
 
             </ul>
 
+            
         </div>
 
     )
@@ -1205,18 +1383,7 @@ height:
 
 <br />
 
-<small>
 
-    Status:
-    {' '}
-
-    {
-        msg.status === 'accepted'
-            ? `accepted by ${msg.accepted_by?.username}`
-            : msg.status
-    }
-
-</small>
 {
     currentUser?.role === 'wholesaler' &&
     msg.status === 'pending' &&
@@ -1269,6 +1436,92 @@ height:
 
     )
 } 
+{
+    currentUser?.role === 'retailer' &&
+    msg.status === 'accepted' &&
+    msg.accepted_by && (
+
+        <div
+            style={{
+                color: 'green',
+                fontWeight: 'bold',
+                marginTop: '10px'
+            }}
+        >
+            ✓ Accepted by {msg.accepted_by.username}
+        </div>
+    )
+}
+{
+    currentUser?.role === 'retailer' &&
+    msg.status === 'rejected' &&
+    msg.accepted_by && (
+
+        <div
+            style={{
+                color: 'green',
+                fontWeight: 'bold',
+                marginTop: '10px'
+            }}
+        >
+            ✓ Rejected by {msg.accepted_by.username}
+        </div>
+    )
+}
+{
+    currentUser?.role === 'wholesaler' &&
+     (
+
+        <div
+            style={{
+                color: 'green',
+                fontWeight: 'bold',
+                marginTop: '10px'
+            }}
+        >
+           {
+    msg.status === 'pending' && (
+        <span>
+            Pending
+        </span>
+    )
+}
+
+{
+    msg.status === 'accepted' && (
+        <span style={{color:'green'}}>
+            ✓ Accepted by {msg.accepted_by?.username}
+        </span>
+    )
+}
+
+{
+msg.status === 'rejected'
+&& (
+
+    <div
+        style={{
+            color:'#dc3545',
+            fontWeight:'bold',
+            marginTop:'5px'
+        }}
+    >
+
+        {
+            msg.accepted_by?.username ===
+            currentUser?.username
+
+                ? '✗ You Rejected this request'
+
+                : `Rejected by ${msg.accepted_by?.username}`
+        }
+
+    </div>
+)
+}
+        </div>
+    )
+}
 </div>
 </div>
                         )
