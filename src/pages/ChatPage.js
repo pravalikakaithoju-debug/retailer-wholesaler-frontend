@@ -1495,27 +1495,14 @@ height:
         </span>
     )
 } 
-
 {
-msg.status === 'rejected'
-&& (
-
-    <div
-        style={{
-            color:'#dc3545',
-            fontWeight:'bold',
-            marginTop:'5px'
-        }}
-    >
-
-        {
-            msg.accepted_by?.username ===
-            currentUser?.username
-
-                ? '✗ You Rejected this request'
-
-                : `Rejected by ${msg.accepted_by?.username}`
-        }
+    msg.status === 'rejected' && msg.accepted_by?.username ===
+    currentUser?.username && (
+        <span style={{color:'green'}}>
+            ✓ You rejected this request
+        </span>
+    )
+} 
 
     </div>
 )
