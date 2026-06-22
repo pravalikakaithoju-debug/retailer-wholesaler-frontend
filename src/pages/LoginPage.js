@@ -270,13 +270,7 @@ if (showForgotUsername) {
         TRADE CONNECT
     </h1>
 
-    <p>
-        Connecting Retailers & Wholesalers
-    </p>
-
-    <h3>
-        (Smart Business Procurement Platform)
-    </h3>
+    
 
 </div>
 
