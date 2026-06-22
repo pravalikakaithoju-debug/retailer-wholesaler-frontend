@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const API = axios.create({
-    baseURL: 'https://retailer-wholesaler-chat.onrender.coms/api/'
+    baseURL: 'https://retailer-wholesaler-chat.onrender.com/api/'
 });
 
 API.interceptors.request.use(
