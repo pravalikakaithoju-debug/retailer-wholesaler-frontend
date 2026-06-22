@@ -1488,12 +1488,13 @@ height:
 }
 
 {
-    msg.status === 'accepted' && (
+    msg.status === 'accepted' && msg.accepted_by?.username ===
+    currentUser?.username && (
         <span style={{color:'green'}}>
-            ✓ Accepted by {msg.accepted_by?.username}
+            ✓ You accepted this request
         </span>
     )
-}
+} 
 
 {
 msg.status === 'rejected'
