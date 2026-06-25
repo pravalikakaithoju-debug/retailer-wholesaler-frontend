@@ -1479,17 +1479,12 @@ height:
                 marginTop: '10px'
             }}
         >
-           {
-    msg.status === 'pending' && (
-        <span>
-            Pending
-        </span>
-    )
-}
+           
 
 {
     msg.status === 'accepted' && msg.accepted_by?.username ===
     currentUser?.username && (
+        
         <span style={{color:'green'}}>
             ✓ You accepted this request
         </span>
@@ -1509,63 +1504,84 @@ height:
 }
         </div>
     )
-}
+
 </div>
-</div>
+
                         )
                     )
                 }
 
-                <div
-                    style={{
-                        display: 'flex',
-                        marginTop:
-                            '20px',
-                        gap: '10px'
-                    }}
-                >
-                    <input
-    type="file"
+        {
+!(
+    currentUser?.role === 'wholesaler' &&
+    selectedChat === 'broadcast'
+) && (
 
-    accept="image/*"
+<div
+    style={{
+        display: 'flex',
+        marginTop: '20px',
+        gap: '10px'
+    }}
+>
+    <input
+        type="file"
+        accept="image/*"
+        onChange={(e) =>
+            setSelectedImage(
+                e.target.files[0]
+            )
+        }
+    />
 
-    onChange={(e) =>
+    <input
+        type="text"
+        value={newMessage}
+        placeholder="Type message..."
+        onChange={(e) =>
+            setNewMessage(
+                e.target.value
+            )
+        }
+        style={{
+            flex: 1,
+            width: '100%',
+            padding: '10px',
+            boxSizing: 'border-box'
+        }}
+    />
 
-        setSelectedImage(
-            e.target.files[0]
-        )
-    }
-/>                  
+    <button
+        onClick={sendMessage}
+    >
+        Send
+    </button>
 
-                    <input
-                        type="text"
-                        value={
-                            newMessage
-                        }
-                        placeholder="Type message..."
-                        onChange={(e) =>
-                            setNewMessage(
-                                e.target.value
-                            )
-                        }
-                        style={{
-    flex: 1,
-    width: '100%',
-    padding: '10px',
-    boxSizing: 'border-box'
-}}
-                    />
+</div>
 
-                    <button
-                        onClick={sendMessage}
-                    >
+)
+}
+{
+selectedChat === 'broadcast' &&
+currentUser?.role === 'wholesaler' && (
 
-                        Send
+    <div
+        style={{
+            marginTop: '20px',
+            padding: '10px',
+            backgroundColor: '#f8f9fa',
+            borderRadius: '8px',
+            color: '#dc3545',
+            textAlign: 'center',
+            fontWeight: 'bold'
+        }}
+    >
+        Broadcast room is view-only for wholesalers.
+        You can only Accept or Reject retailer requests.
+    </div>
 
-                    </button>
-                    
-
-                </div>
+)
+}
 
             </div>
 
